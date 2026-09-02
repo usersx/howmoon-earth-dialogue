@@ -20,6 +20,9 @@ class Settings:
     qwen_base_url: str
     qwen_model: str
     qwen_asr_model: str
+    qwen_tts_endpoint: str
+    qwen_tts_model: str
+    qwen_tts_voice: str
     deepseek_api_key: Optional[str]
     deepseek_base_url: str
     deepseek_model: str
@@ -67,6 +70,12 @@ class Settings:
             ).rstrip("/"),
             qwen_model=os.getenv("QWEN_MODEL", "qwen3.7-plus"),
             qwen_asr_model=os.getenv("QWEN_ASR_MODEL", "qwen3-asr-flash"),
+            qwen_tts_endpoint=os.getenv(
+                "QWEN_TTS_ENDPOINT",
+                "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+            ),
+            qwen_tts_model=os.getenv("QWEN_TTS_MODEL", "qwen3-tts-flash"),
+            qwen_tts_voice=os.getenv("QWEN_TTS_VOICE", "Cherry"),
             deepseek_api_key=os.getenv("DEEPSEEK_API_KEY") or None,
             deepseek_base_url=os.getenv(
                 "DEEPSEEK_BASE_URL", "https://api.deepseek.com"

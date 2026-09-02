@@ -36,7 +36,7 @@
 { "text": "需要朗读的文字" }
 ```
 
-当前响应为 `audio/L16`、16 kHz、单声道、`s16le` PCM。客户端只接受 8–48 kHz、单声道、`s16le`。
+当前响应为 `audio/L16`、单声道、`s16le` PCM。macOS 本地朗读为 16 kHz，千问在线朗读通常为 24 kHz；客户端接受 8–48 kHz。
 
 ## `POST /api/transcribe`
 

@@ -187,11 +187,15 @@ def test_mock_dialogue_has_visible_thinking_delay() -> None:
 
 
 def test_tts_contract(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("app.main.synthesize_macos_pcm", lambda _text: b"\x00\x00" * 1_000)
+    async def fake_speech(_settings: object, _text: str) -> tuple[bytes, int, str]:
+        return b"\x00\x00" * 1_000, 24_000, "qwen3-tts-flash"
+
+    monkeypatch.setattr("app.main.synthesize_speech", fake_speech)
     response = client.post("/api/tts", json={"text": "你好，地球。"})
     assert response.status_code == 200
-    assert response.headers["x-audio-sample-rate"] == "16000"
+    assert response.headers["x-audio-sample-rate"] == "24000"
     assert response.headers["x-audio-sample-format"] == "s16le"
+    assert response.headers["x-tts-provider"] == "qwen3-tts-flash"
     assert len(response.content) > 1_000
 
 

@@ -15,7 +15,7 @@ from .services import (
     ServiceUnavailable,
     build_city_visual,
     build_geography,
-    synthesize_macos_pcm,
+    synthesize_speech,
     transcribe_audio,
 )
 
@@ -93,7 +93,7 @@ async def geography(body: GeographyRequest) -> dict:
 @app.post("/api/tts")
 async def tts(body: TTSRequest) -> Response:
     try:
-        pcm = synthesize_macos_pcm(body.text.strip())
+        pcm, sample_rate, provider = await synthesize_speech(settings, body.text.strip())
     except ServiceUnavailable as exc:
         return JSONResponse(status_code=503, content={"error": str(exc)})
     return Response(
@@ -101,10 +101,10 @@ async def tts(body: TTSRequest) -> Response:
         media_type="audio/L16",
         headers={
             "Cache-Control": "no-store",
-            "X-Audio-Sample-Rate": "16000",
+            "X-Audio-Sample-Rate": str(sample_rate),
             "X-Audio-Sample-Format": "s16le",
             "X-Audio-Channels": "1",
-            "X-TTS-Provider": "macos-say",
+            "X-TTS-Provider": provider,
         },
     )
 

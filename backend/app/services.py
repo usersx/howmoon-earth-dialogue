@@ -233,6 +233,69 @@ def synthesize_macos_pcm(text: str) -> bytes:
             raise ServiceUnavailable("本地 TTS 暂时不可用。") from exc
 
 
+async def synthesize_qwen_pcm(config: Settings, text: str) -> tuple[bytes, int]:
+    if not config.qwen_api_key:
+        raise ServiceUnavailable("服务器没有配置跨平台语音合成，请先使用文字模式。")
+
+    payload = {
+        "model": config.qwen_tts_model,
+        "input": {
+            "text": text,
+            "voice": config.qwen_tts_voice,
+            "language_type": "Chinese",
+        },
+    }
+    headers = {
+        "Authorization": f"Bearer {config.qwen_api_key}",
+        "Content-Type": "application/json",
+    }
+    async with httpx.AsyncClient(timeout=90, follow_redirects=True) as client:
+        response = await client.post(
+            config.qwen_tts_endpoint,
+            headers=headers,
+            json=payload,
+        )
+        if response.status_code >= 400:
+            raise ServiceUnavailable(
+                f"千问语音合成失败（HTTP {response.status_code}）。"
+            )
+        try:
+            audio_url = str(response.json()["output"]["audio"]["url"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ServiceUnavailable("千问语音合成返回格式无法读取。") from exc
+        audio_response = await client.get(audio_url)
+        if audio_response.status_code >= 400:
+            raise ServiceUnavailable(
+                f"千问语音文件下载失败（HTTP {audio_response.status_code}）。"
+            )
+
+    try:
+        with wave.open(io.BytesIO(audio_response.content), "rb") as audio:
+            sample_rate = audio.getframerate()
+            if (
+                audio.getnchannels() != 1
+                or audio.getsampwidth() != 2
+                or not 8_000 <= sample_rate <= 48_000
+            ):
+                raise ServiceUnavailable("千问语音格式与前端不兼容。")
+            frames = audio.readframes(audio.getnframes())
+    except (EOFError, wave.Error) as exc:
+        raise ServiceUnavailable("千问语音文件无法读取。") from exc
+    if not frames:
+        raise ServiceUnavailable("千问语音合成没有返回音频。")
+    return frames, sample_rate
+
+
+async def synthesize_speech(config: Settings, text: str) -> tuple[bytes, int, str]:
+    if platform.system() == "Darwin":
+        try:
+            return synthesize_macos_pcm(text), 16_000, "macos-say"
+        except ServiceUnavailable:
+            pass
+    pcm, sample_rate = await synthesize_qwen_pcm(config, text)
+    return pcm, sample_rate, config.qwen_tts_model
+
+
 async def transcribe_audio(
     config: Settings, filename: str, content_type: str, audio: bytes
 ) -> str:
