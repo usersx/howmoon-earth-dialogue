@@ -1,0 +1,12 @@
+.git
+.DS_Store
+backend/.env
+backend/.env.local
+backend/.venv
+backend/tests
+docs
+recovered
+**/__pycache__
+**/.pytest_cache
+*.pyc
+*.log
