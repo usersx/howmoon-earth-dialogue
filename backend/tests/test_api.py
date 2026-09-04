@@ -76,6 +76,20 @@ def test_dynamic_city_chunk_is_served() -> None:
     assert b"webpackChunk_N_E" in response.content
 
 
+def test_flight_links_target_trip_with_destination() -> None:
+    response = client.get("/city/beijing/")
+    assert response.status_code == 200
+    assert "https://www.trip.com/flights/?acity=bjs" in response.text
+    assert "i.meituan.com" not in response.text
+
+    chunk = client.get(
+        "/_next/static/chunks/app/city/%5Bslug%5D/page-236750cf20f1491a.js"
+    )
+    assert chunk.status_code == 200
+    assert b"tripFlightUrl" in chunk.content
+    assert b"i.meituan.com" not in chunk.content
+
+
 def test_dialogue_validates_required_fields() -> None:
     response = client.post("/api/dialogue", json={})
     assert response.status_code == 400
@@ -192,6 +206,7 @@ def test_dialogue_falls_back_from_qwen_to_deepseek() -> None:
 
 def test_geography_contract() -> None:
     turn = _final_event(client.post("/api/dialogue", json=_dialogue_body(5)).text)["response"]["turn"]
+    assert turn["result"]["destination"]["iataCode"] == "IZO"
     response = client.post("/api/geography", json={"turn": turn, "scope": "full"})
     assert response.status_code == 200
     payload = response.json()

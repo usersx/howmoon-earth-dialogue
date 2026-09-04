@@ -78,6 +78,12 @@ CityPanorama:()=>v,PersonalizedCityPanorama:()=>w}
 );
 var r=a(5155),i=a(2619),n=a.n(i),o=a(2115);
 let l="earth-dialogue.city-visual.v1";
+let tripCityCodes={
+beijing:"BJS",rome:"ROM",dali:"DLU",fukuoka:"FUK",ljubljana:"LJU",porto:"OPO",
+"北京":"BJS",Beijing:"BJS","罗马":"ROM",Rome:"ROM","大理":"DLU",Dali:"DLU",
+"福冈":"FUK",Fukuoka:"FUK","卢布尔雅那":"LJU",Ljubljana:"LJU",
+"波尔图":"OPO",Porto:"OPO","松江市":"IZO",Matsue:"IZO","垦丁":"HCN",Kenting:"HCN"}
+;
 function s(e){
 return JSON.stringify({
 destination:e.destination,narrative:e.display.revealNarrative,visualBrief:e.visualBrief}
@@ -224,6 +230,9 @@ r.close()}
 var y=a(3142),x=a(7403);
 function j(e){
 e.preventDefault(),(0,y.a2)(),window.location.replace("/?restart=1")}
+function tripFlightUrl(e){
+let t=String(e||"").trim().toLowerCase();
+return/^[a-z]{3}$/.test(t)?"https://www.trip.com/flights/?acity=".concat(encodeURIComponent(t),"&locale=zh-CN&curr=CNY"):"https://www.trip.com/flights/?locale=zh-CN&curr=CNY"}
 function v(e){
 let{
 city:t}
@@ -296,11 +305,11 @@ children:"SELECTED CITIES"}
 "aria-hidden":"true",children:"→"}
 )]}
 ),(0,r.jsxs)("a",{
-className:"is-secondary",href:"https://i.meituan.com/index/changecity/",target:"_blank",rel:"noreferrer",children:[(0,r.jsxs)("span",{
+className:"is-secondary",href:tripFlightUrl(t.iataCode||tripCityCodes[t.slug]||tripCityCodes[t.name]||tripCityCodes[t.englishName]),target:"_blank",rel:"noreferrer",children:[(0,r.jsxs)("span",{
 children:[(0,r.jsxs)("b",{
 children:["直接飞往",t.name]}
 ),(0,r.jsx)("small",{
-children:"MEITUAN TICKETS"}
+children:"TRIP.COM FLIGHTS"}
 )]}
 ),(0,r.jsx)("i",{
 "aria-hidden":"true",children:"↗"}
@@ -463,7 +472,7 @@ className:"personalized-city-narrative",children:C.display.revealNarrative.map(e
 children:e}
 ,e))}
 ),(0,r.jsx)("a",{
-className:"personalized-city-flight",href:"https://i.meituan.com/index/changecity/",target:"_blank",rel:"noreferrer",children:"当前机票信息"}
+className:"personalized-city-flight",href:tripFlightUrl(C.destination.iataCode||tripCityCodes[C.destination.city]||tripCityCodes[C.destination.cityEnglishName]),target:"_blank",rel:"noreferrer",children:"当前机票信息"}
 )]}
 ),(0,r.jsxs)("section",{
 className:"personalized-city-art","aria-label":"城市小画",children:[m?(0,r.jsx)("div",{

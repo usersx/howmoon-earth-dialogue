@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 from typing import Any, AsyncIterator, Dict, Iterable, List, Optional
 
@@ -27,7 +28,7 @@ SYSTEM_PROMPT = """
 1. 如果历史中少于 5 条 user 消息，kind 必须为 question；先用一句话准确复述新线索，再问一个具体且不重复的问题。result 必须为 null。
 2. 如果已有至少 5 条 user 消息，kind 必须为 result；acknowledgement 和 question 必须为 null。
 3. result 必须包含：
-   - destination: placeType, city, cityEnglishName, country, countryCode, adminRegion,
+   - destination: placeType, city, cityEnglishName, country, countryCode, adminRegion, iataCode,
      candidateCoordinates {latitude, longitude}, confidence, confidenceMessage
    - display: revealNarrative（2 条）, predictionNote
    - evidenceAnchors（2 条，每条含 userDetail 和 relevance）
@@ -35,7 +36,8 @@ SYSTEM_PROMPT = """
    - visualBrief: coreNeed, desiredState, atmosphere, primaryScene,
      importantElements（4 条）, avoidElements（4 条）
 4. 推荐一个具体城市，不要推荐国家、景区或泛区域。坐标要合理，但文案必须说明推荐是预测，不是事实保证。
-5. 使用自然、克制的简体中文。
+5. iataCode 必须是距离该城市最近且有实际客运航班的机场或城市三字码，只能包含 3 个大写英文字母。
+6. 使用自然、克制的简体中文。
 """.strip()
 
 
@@ -87,6 +89,7 @@ def _mock_turn(messages: List[DialogueMessage]) -> Dict[str, Any]:
             "country": "日本",
             "countryCode": "JP",
             "region": "岛根县",
+            "iata": "IZO",
             "lat": 35.4681,
             "lon": 133.0484,
             "scene": "宍道湖傍晚的湖岸步道",
@@ -98,6 +101,7 @@ def _mock_turn(messages: List[DialogueMessage]) -> Dict[str, Any]:
             "country": "中国",
             "countryCode": "CN",
             "region": "云南",
+            "iata": "DLU",
             "lat": 25.6065,
             "lon": 100.2676,
             "scene": "洱海边通向古城生活的缓慢道路",
@@ -116,6 +120,7 @@ def _mock_turn(messages: List[DialogueMessage]) -> Dict[str, Any]:
                 "country": city["country"],
                 "countryCode": city["countryCode"],
                 "adminRegion": city["region"],
+                "iataCode": city["iata"],
                 "candidateCoordinates": {
                     "latitude": city["lat"],
                     "longitude": city["lon"],
@@ -190,6 +195,15 @@ def _normalise_turn(value: Dict[str, Any]) -> Dict[str, Any]:
             "result": None,
         }
     if kind == "result" and isinstance(value.get("result"), dict):
+        destination = value["result"].get("destination")
+        iata_code = (
+            str(destination.get("iataCode") or "").strip().upper()
+            if isinstance(destination, dict)
+            else ""
+        )
+        if not re.fullmatch(r"[A-Z]{3}", iata_code):
+            raise DialogueProviderError("模型没有返回有效的目的地机场代码。")
+        destination["iataCode"] = iata_code
         value["schemaVersion"] = "1.2"
         value["acknowledgement"] = None
         value["question"] = None

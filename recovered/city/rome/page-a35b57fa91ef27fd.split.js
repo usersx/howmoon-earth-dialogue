@@ -343,7 +343,7 @@ children:g.credential}
 className:"demo-disclaimer",children:"演示信息 \xb7 出行前请以景点官方公告为准"}
 )]}
 ),(0,t.jsxs)("a",{
-className:"city-ticket-link",href:"https://i.meituan.com/index/changecity/",target:"_blank",rel:"noreferrer",children:["立即购票 ",(0,t.jsx)("span",{
+className:"city-ticket-link",href:"https://www.trip.com/flights/?acity=rom&locale=zh-CN&curr=CNY",target:"_blank",rel:"noreferrer",children:["当前机票信息 ",(0,t.jsx)("span",{
 "aria-hidden":"true",children:"↗"}
 )]}
 )]}
