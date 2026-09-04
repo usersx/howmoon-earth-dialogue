@@ -57,8 +57,10 @@ async def health() -> dict:
 async def dialogue(body: DialogueRequest) -> StreamingResponse:
     async def events() -> AsyncIterator[bytes]:
         latest = ""
+        provider = settings.dialogue_provider
         try:
-            async for partial in stream_turn(settings, body.messages):
+            async for active_provider, partial in stream_turn(settings, body.messages):
+                provider = active_provider
                 latest = partial
                 yield _sse({"type": "model-text", "text": partial})
             turn = parse_turn(latest, body.messages)
@@ -67,7 +69,7 @@ async def dialogue(body: DialogueRequest) -> StreamingResponse:
                     "type": "final",
                     "response": {
                         "turn": turn,
-                        "provider": settings.dialogue_provider,
+                        "provider": provider,
                         "geography": None,
                     },
                 }

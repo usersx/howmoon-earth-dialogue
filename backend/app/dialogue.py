@@ -179,7 +179,7 @@ def _extract_json(text: str) -> Dict[str, Any]:
     return value
 
 
-def _normalise_turn(value: Dict[str, Any], messages: List[DialogueMessage]) -> Dict[str, Any]:
+def _normalise_turn(value: Dict[str, Any]) -> Dict[str, Any]:
     kind = value.get("kind")
     if kind == "question" and isinstance(value.get("question"), str):
         return {
@@ -194,53 +194,46 @@ def _normalise_turn(value: Dict[str, Any], messages: List[DialogueMessage]) -> D
         value["acknowledgement"] = None
         value["question"] = None
         return value
-    return _mock_turn(messages)
+    raise DialogueProviderError("模型返回的数据结构不完整。")
 
 
-async def stream_turn(
+async def _complete_provider(
     config: Settings,
+    provider: str,
+    api_key: str,
+    base_url: str,
+    model: str,
     messages: List[DialogueMessage],
-    transport: Optional[httpx.AsyncBaseTransport] = None,
-) -> AsyncIterator[str]:
-    if not config.dialogue_api_key:
-        if not config.allow_mock_dialogue:
-            raise DialogueProviderError("服务器没有配置对话模型 API Key。")
-        await asyncio.sleep(max(0, config.mock_thinking_delay_seconds))
-        text = json.dumps(_mock_turn(messages), ensure_ascii=False, separators=(",", ":"))
-        for end in range(24, len(text), 24):
-            await asyncio.sleep(0.008)
-            yield text[:end]
-        yield text
-        return
-
+    transport: Optional[httpx.AsyncBaseTransport],
+) -> str:
     payload = {
-        "model": config.dialogue_model,
+        "model": model,
         "messages": _as_api_messages(messages),
         "response_format": {"type": "json_object"},
         "stream": True,
         "max_tokens": 3_500,
     }
-    if config.dialogue_provider == "deepseek":
+    if provider == "deepseek":
         payload["thinking"] = {"type": "disabled"}
     headers = {
-        "Authorization": f"Bearer {config.dialogue_api_key}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
-    timeout = httpx.Timeout(config.deepseek_timeout_seconds)
     accumulated = ""
-    started = time.monotonic()
-    first_visible_chunk = True
-    async with httpx.AsyncClient(timeout=timeout, transport=transport) as client:
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(config.deepseek_timeout_seconds),
+        transport=transport,
+    ) as client:
         async with client.stream(
             "POST",
-            f"{config.dialogue_base_url}/chat/completions",
+            f"{base_url}/chat/completions",
             headers=headers,
             json=payload,
         ) as response:
             if response.status_code >= 400:
                 await response.aread()
                 raise DialogueProviderError(
-                    f"{config.dialogue_provider} 请求失败（HTTP {response.status_code}）。"
+                    f"{provider} 请求失败（HTTP {response.status_code}）。"
                 )
             async for line in response.aiter_lines():
                 if not line.startswith("data:"):
@@ -250,23 +243,80 @@ async def stream_turn(
                     continue
                 try:
                     chunk = json.loads(data)
-                    delta = chunk["choices"][0]["delta"].get("content") or ""
+                    accumulated += chunk["choices"][0]["delta"].get("content") or ""
                 except (KeyError, IndexError, TypeError, json.JSONDecodeError):
                     continue
-                if delta:
-                    accumulated += delta
-                    if first_visible_chunk:
-                        remaining = (
-                            config.min_provider_thinking_delay_seconds
-                            - (time.monotonic() - started)
-                        )
-                        if remaining > 0:
-                            await asyncio.sleep(remaining)
-                        first_visible_chunk = False
-                    yield accumulated
     if not accumulated:
-        raise DialogueProviderError("模型没有返回正文。")
+        raise DialogueProviderError(f"{provider} 没有返回正文。")
+    turn = _normalise_turn(_extract_json(accumulated))
+    return json.dumps(turn, ensure_ascii=False, separators=(",", ":"))
+
+
+async def stream_turn(
+    config: Settings,
+    messages: List[DialogueMessage],
+    transport: Optional[httpx.AsyncBaseTransport] = None,
+) -> AsyncIterator[tuple[str, str]]:
+    if not config.dialogue_api_key:
+        if not config.allow_mock_dialogue:
+            raise DialogueProviderError("服务器没有配置对话模型 API Key。")
+        await asyncio.sleep(max(0, config.mock_thinking_delay_seconds))
+        text = json.dumps(_mock_turn(messages), ensure_ascii=False, separators=(",", ":"))
+        for end in range(24, len(text), 24):
+            await asyncio.sleep(0.008)
+            yield "local-mock", text[:end]
+        yield "local-mock", text
+        return
+
+    providers = []
+    if config.qwen_api_key:
+        providers.append(
+            ("qwen", config.qwen_api_key, config.qwen_base_url, config.qwen_model)
+        )
+    if config.deepseek_api_key:
+        providers.append(
+            (
+                "deepseek",
+                config.deepseek_api_key,
+                config.deepseek_base_url,
+                config.deepseek_model,
+            )
+        )
+
+    started = time.monotonic()
+    errors = []
+    for provider, api_key, base_url, model in providers:
+        try:
+            text = await _complete_provider(
+                config,
+                provider,
+                api_key,
+                base_url,
+                model,
+                messages,
+                transport,
+            )
+        except (DialogueProviderError, httpx.HTTPError) as exc:
+            errors.append(str(exc))
+            continue
+
+        remaining = config.min_provider_thinking_delay_seconds - (
+            time.monotonic() - started
+        )
+        if remaining > 0:
+            await asyncio.sleep(remaining)
+        for end in range(24, len(text), 24):
+            await asyncio.sleep(0.008)
+            yield provider, text[:end]
+        yield provider, text
+        return
+
+    if config.allow_mock_dialogue:
+        text = json.dumps(_mock_turn(messages), ensure_ascii=False, separators=(",", ":"))
+        yield "local-mock", text
+        return
+    raise DialogueProviderError("千问和 DeepSeek 均不可用。" + "；".join(errors))
 
 
 def parse_turn(text: str, messages: List[DialogueMessage]) -> Dict[str, Any]:
-    return _normalise_turn(_extract_json(text), messages)
+    return _normalise_turn(_extract_json(text))

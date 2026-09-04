@@ -130,20 +130,64 @@ def test_qwen_stream_adapter() -> None:
             min_provider_thinking_delay_seconds=0,
         )
         values = []
-        async for value in stream_turn(
+        async for provider, value in stream_turn(
             config,
             [
                 type("Message", (), {"role": "user", "content": "想慢一点。"})()
             ],
             transport=httpx.MockTransport(handler),
         ):
-            values.append(value)
+            values.append((provider, value))
         return values
 
     partials = asyncio.run(collect())
-    assert partials[-1] == text
-    turn = parse_turn(partials[-1], _messages(1))
+    assert partials[-1][0] == "qwen"
+    turn = parse_turn(partials[-1][1], _messages(1))
     assert turn["kind"] == "question"
+
+
+def test_dialogue_falls_back_from_qwen_to_deepseek() -> None:
+    completion = {
+        "schemaVersion": "1.2",
+        "kind": "question",
+        "acknowledgement": "我记下了。",
+        "question": "你愿意为哪种风景停下来？",
+        "result": None,
+    }
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.host)
+        if request.url.host == "mock.qwen.local":
+            return httpx.Response(503, json={"error": "unavailable"})
+        body = "data: " + json.dumps(
+            {"choices": [{"delta": {"content": json.dumps(completion, ensure_ascii=False)}}]}
+        ) + "\n\ndata: [DONE]\n\n"
+        return httpx.Response(200, text=body, headers={"content-type": "text/event-stream"})
+
+    async def collect() -> list:
+        config = replace(
+            settings,
+            qwen_api_key="qwen-key",
+            qwen_base_url="https://mock.qwen.local",
+            deepseek_api_key="deepseek-key",
+            deepseek_base_url="https://mock.deepseek.local",
+            allow_mock_dialogue=False,
+            min_provider_thinking_delay_seconds=0,
+        )
+        values = []
+        async for value in stream_turn(
+            config,
+            [type("Message", (), {"role": "user", "content": "想慢一点。"})()],
+            transport=httpx.MockTransport(handler),
+        ):
+            values.append(value)
+        return values
+
+    values = asyncio.run(collect())
+    assert calls == ["mock.qwen.local", "mock.deepseek.local"]
+    assert values[-1][0] == "deepseek"
+    assert parse_turn(values[-1][1], _messages(1))["kind"] == "question"
 
 
 def test_geography_contract() -> None:
@@ -175,7 +219,7 @@ def test_mock_dialogue_has_visible_thinking_delay() -> None:
             deepseek_api_key=None,
             mock_thinking_delay_seconds=0.05,
         )
-        async for _value in stream_turn(
+        async for _provider, _value in stream_turn(
             config,
             [type("Message", (), {"role": "user", "content": "想慢一点。"})()],
         ):
