@@ -119,3 +119,5 @@
   object-fit: contain;
   transform: none;
 }
+.topbar .city-directory-link { margin-left:auto; white-space:nowrap; }
+.is-start-view .topbar .city-directory-link { color:#f5f0df; border-color:#f5f0df80; background:#074a7533; }

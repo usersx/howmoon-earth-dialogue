@@ -107,7 +107,8 @@
   const frame = $(".art-frame"), art = $("#detail-art"), card = $("#detail-card");
   const spots = [...document.querySelectorAll(".hotspot")];
   const lens = $("#magnifier"), toggle = $("#toggle-magnifier");
-  let active = null, magnify = false;
+  let active = null, magnify = true;
+  toggle.setAttribute("aria-pressed", "true");
   function showPoint(index) {
     const point = landmark.points[index];
     if (!point) return;
@@ -144,19 +145,16 @@
     if (!magnify) lens.hidden = true;
   });
   frame.addEventListener("pointermove", event => {
-    if (!magnify || event.target.closest(".hotspot")) { lens.hidden = true; return; }
+    if (!magnify || event.pointerType !== "mouse") { lens.hidden = true; return; }
     const rect = frame.getBoundingClientRect();
     const x = event.clientX - rect.left, y = event.clientY - rect.top;
     lens.hidden = false;
     lens.style.left = x + "px"; lens.style.top = y + "px";
-    lens.style.backgroundImage = "url(" + art.getAttribute("src") + ")";
-    lens.style.backgroundSize = (rect.width * 2.5) + "px " + (rect.height * 2.5) + "px";
-    lens.style.backgroundPosition = (90 - x * 2.5) + "px " + (90 - y * 2.5) + "px";
+    const glass = lens.firstElementChild;
+    const radius = glass.clientWidth / 2;
+    glass.style.backgroundImage = "url(" + art.getAttribute("src") + ")";
+    glass.style.backgroundSize = (rect.width * 2.5) + "px " + (rect.height * 2.5) + "px";
+    glass.style.backgroundPosition = (radius - x * 2.5) + "px " + (radius - y * 2.5) + "px";
   });
   frame.addEventListener("pointerleave", () => { lens.hidden = true; });
-  $("#show-overview").addEventListener("click", () => {
-    const overview = $("#overview");
-    overview.hidden = !overview.hidden;
-    if (!overview.hidden) overview.scrollIntoView({behavior: reduced ? "instant" : "smooth", block: "nearest"});
-  });
 })();

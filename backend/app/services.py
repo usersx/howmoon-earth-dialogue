@@ -13,7 +13,7 @@ from typing import Any, Dict
 
 import httpx
 
-from .config import Settings
+from .config import Settings, settings
 
 
 class ServiceUnavailable(RuntimeError):
@@ -32,6 +32,10 @@ KNOWN_CITIES = {
     "波尔图": (41.1579, -8.6291),
     "松江市": (35.4681, 133.0484),
 }
+
+
+_atlas_catalogue = json.loads((settings.site_dir / "city-atlas-data.json").read_text())
+KNOWN_CITIES.update({city["name"]: (city["latitude"], city["longitude"]) for city in _atlas_catalogue.values()})
 
 
 def build_geography(turn: Dict[str, Any], scope: str) -> Dict[str, Any]:

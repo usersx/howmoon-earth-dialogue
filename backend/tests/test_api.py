@@ -65,15 +65,37 @@ def test_health() -> None:
 def test_city_atlas_catalogue_routes_and_artwork() -> None:
     catalogue = json.loads((settings.site_dir / "city-atlas-data.json").read_text())
     for slug, city in catalogue.items():
+        extension = city.get("imageFormat", "png")
         assert client.get(f"/city/{slug}/").status_code == 200
-        assert client.head(f"/assets/{slug}/hero.png").status_code == 200
-        assert client.head(f"/assets/{slug}/panorama.png").status_code == 200
+        assert client.head(f"/assets/{slug}/hero.{extension}").status_code == 200
+        assert client.head(f"/assets/{slug}/panorama.{extension}").status_code == 200
         for landmark in city["landmarks"]:
             page = client.get(f"/city/{slug}/experience/{landmark['slug']}/")
             assert page.status_code == 200
             assert landmark["name"] in page.text
             assert page.text.count('class="hotspot"') == len(landmark["points"])
-            assert client.head(f"/assets/{slug}/{landmark['slug']}.png").status_code == 200
+            assert 'id="toggle-magnifier" class="pill" aria-pressed="true"' in page.text
+            assert 'id="overview" class="landmark-reading"' in page.text
+            assert len(landmark["article"]) == 3
+            assert sum(len(section["text"]) for section in landmark["article"]) >= 200
+            assert len({(p["x"], p["y"]) for p in landmark["points"]}) == len(landmark["points"])
+            for section in landmark["article"]:
+                assert section["heading"] in page.text
+            assert client.head(f"/assets/{slug}/{landmark['slug']}.{extension}").status_code == 200
+
+
+def test_city_directory_and_globe_entries_are_consistent() -> None:
+    catalogue = json.loads((settings.site_dir / "city-atlas-data.json").read_text())
+    directory = client.get("/cities/")
+    assert directory.status_code == 200
+    main_bundle = (settings.site_dir / "_next/static/chunks/app/page-cfec76f4fe91be41.js").read_text()
+    city_bundle = (settings.site_dir / "_next/static/chunks/app/city/%5Bslug%5D/page-236750cf20f1491a.js").read_text()
+    for slug, city in catalogue.items():
+        assert f'href="/city/{slug}/"' in directory.text
+        assert f'href="/?fly={slug}"' in directory.text
+        assert f'"key":"{slug}"' in main_bundle
+        assert f'"key":"{slug}"' in city_bundle
+        assert f'"quick-journey-{slug}"' in main_bundle
 
 
 def test_static_frontend_is_served() -> None:
