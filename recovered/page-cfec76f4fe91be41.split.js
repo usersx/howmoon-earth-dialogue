@@ -193,7 +193,7 @@ once:!0}
 ,hasDetectedSpeech:()=>p}
 }
 var v=n(7403),b=n(3142),x=n(2506);
-let w=[{
+let w=[{"path":"/city/tokyo","aliases":["东京","東京都","东京市","東京","東京都","日本东京","Tokyo","Tokyo Japan"]},{"path":"/city/xian","aliases":["西安","西安市","陕西西安","中国西安","Xi'an","Xian","Xi’an"]},{
 path:"/city/beijing",aliases:["北京","北京市","中国北京","中国北京市","北京中国","beijing","beijingchina","chinabeijing"]}
 ,{
 path:"/city/rome",aliases:["罗马","意大利罗马","罗马意大利","rome","roma","romeitaly","italyrome","romaitalia","italiaroma"]}
@@ -225,7 +225,7 @@ slug:"ljubljana",name:"卢布尔雅那",englishName:"LJUBLJANA",region:"斯洛�
 function S(e){
 let t=M.findIndex(t=>e.includes(t.name)||t.name.includes(e));
 return t>=0?t:null}
-let E={
+let E={"tokyo":{"result":{"destination":{"placeType":"city","city":"东京","cityEnglishName":"Tokyo","country":"日本","countryCode":"JP","adminRegion":"东京都","iataCode":"TYO","candidateCoordinates":{"latitude":35.6762,"longitude":139.6503},"confidence":"high","confidenceMessage":null},"display":{"revealNarrative":["东京塔下的暮色与浅草寺的朱红屋檐","沿着城市长卷，选择一处想停留的地方。"],"predictionNote":"这是一次直接点亮的快捷旅程。"},"evidenceAnchors":[],"landmarks":[],"visualBrief":{"primaryScene":"东京塔下的暮色与浅草寺的朱红屋檐","atmosphere":"城市暮色"}},"geography":{"status":"estimated","provider":"fixed","placeId":"quick-journey-tokyo","displayName":"东京","coordinates":{"latitude":35.6762,"longitude":139.6503},"boundary":null,"landmarks":[]}},"xian":{"result":{"destination":{"placeType":"city","city":"西安","cityEnglishName":"Xi'an","country":"中国","countryCode":"CN","adminRegion":"陕西省","iataCode":"SIA","candidateCoordinates":{"latitude":34.3416,"longitude":108.9398},"confidence":"high","confidenceMessage":null},"display":{"revealNarrative":["永宁门的晚灯、大雁塔与长安的街巷","沿着城市长卷，选择一处想停留的地方。"],"predictionNote":"这是一次直接点亮的快捷旅程。"},"evidenceAnchors":[],"landmarks":[],"visualBrief":{"primaryScene":"永宁门的晚灯、大雁塔与长安的街巷","atmosphere":"城市暮色"}},"geography":{"status":"estimated","provider":"fixed","placeId":"quick-journey-xian","displayName":"西安","coordinates":{"latitude":34.3416,"longitude":108.9398},"boundary":null,"landmarks":[]}},
 beijing:{
 result:{
 destination:{
@@ -1037,6 +1037,8 @@ type:"button",className:"text"===Z?"is-active":void 0,"aria-pressed":"text"===Z,
 className:"topbar-journey-link",href:"/?fly=beijing",children:"体验北京"}
 ),(0,r.jsx)("a",{
 className:"topbar-journey-link",href:"/?fly=rome",children:"体验罗马"}
+),(0,r.jsx)("a",{className:"topbar-journey-link",href:"/?fly=tokyo",children:"体验东京"}
+),(0,r.jsx)("a",{className:"topbar-journey-link",href:"/?fly=xian",children:"体验西安"}
 ),(0,r.jsx)("button",{
 type:"button",className:"restart-experience",onClick:()=>{
 var e,t,n,r;
@@ -1164,7 +1166,7 @@ ey(!1),eb("idle"),ew(null),e0("text")}
 n.d(t,{
 y:()=>l}
 );
-let r=[{
+let r=[{"key":"tokyo","aliases":["东京","東京都","东京市","東京","東京都","日本东京","Tokyo","Tokyo Japan"],"image":"/assets/tokyo/hero.png","imageVersion":"tokyo-hero-v1","route":"/city/tokyo/","sourceReferences":[]},{"key":"xian","aliases":["西安","西安市","陕西西安","中国西安","Xi'an","Xian","Xi’an"],"image":"/assets/xian/hero.png","imageVersion":"xian-hero-v1","route":"/city/xian/","sourceReferences":[]},{
 key:"beijing",aliases:["北京","北京市","中国北京","北京中国","Beijing","Beijing China","China Beijing"],image:"/assets/beijing-city-hero-v1.jpg",imageVersion:"beijing-city-hero-v1",route:"/city/beijing",sourceReferences:[]}
 ,{
 key:"rome",aliases:["罗马","意大利罗马","罗马意大利","Rome","Roma","Rome Italy","Italy Rome"],image:"/assets/rome-city-hero-v1.jpg",imageVersion:"rome-city-hero-v1",route:"/city/rome",sourceReferences:[]}

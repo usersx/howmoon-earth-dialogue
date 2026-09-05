@@ -62,6 +62,20 @@ def test_health() -> None:
     assert response.json()["status"] == "ok"
 
 
+def test_city_atlas_catalogue_routes_and_artwork() -> None:
+    catalogue = json.loads((settings.site_dir / "city-atlas-data.json").read_text())
+    for slug, city in catalogue.items():
+        assert client.get(f"/city/{slug}/").status_code == 200
+        assert client.head(f"/assets/{slug}/hero.png").status_code == 200
+        assert client.head(f"/assets/{slug}/panorama.png").status_code == 200
+        for landmark in city["landmarks"]:
+            page = client.get(f"/city/{slug}/experience/{landmark['slug']}/")
+            assert page.status_code == 200
+            assert landmark["name"] in page.text
+            assert page.text.count('class="hotspot"') == len(landmark["points"])
+            assert client.head(f"/assets/{slug}/{landmark['slug']}.png").status_code == 200
+
+
 def test_static_frontend_is_served() -> None:
     response = client.get("/")
     assert response.status_code == 200

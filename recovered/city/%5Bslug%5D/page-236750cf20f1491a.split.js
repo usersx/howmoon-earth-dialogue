@@ -4,7 +4,7 @@
 a.d(t,{
 y:()=>n}
 );
-let r=[{
+let r=[{"key":"tokyo","aliases":["东京","東京都","东京市","東京","東京都","日本东京","Tokyo","Tokyo Japan"],"image":"/assets/tokyo/hero.png","imageVersion":"tokyo-hero-v1","route":"/city/tokyo/","sourceReferences":[]},{"key":"xian","aliases":["西安","西安市","陕西西安","中国西安","Xi'an","Xian","Xi’an"],"image":"/assets/xian/hero.png","imageVersion":"xian-hero-v1","route":"/city/xian/","sourceReferences":[]},{
 key:"beijing",aliases:["北京","北京市","中国北京","北京中国","Beijing","Beijing China","China Beijing"],image:"/assets/beijing-city-hero-v1.jpg",imageVersion:"beijing-city-hero-v1",route:"/city/beijing",sourceReferences:[]}
 ,{
 key:"rome",aliases:["罗马","意大利罗马","罗马意大利","Rome","Roma","Rome Italy","Italy Rome"],image:"/assets/rome-city-hero-v1.jpg",imageVersion:"rome-city-hero-v1",route:"/city/rome",sourceReferences:[]}
