@@ -1,17 +1,32 @@
-# 东京与西安城市图鉴
+# 城市图鉴开发说明
 
-新增两座完整城市，均提供俯瞰艺术封面、六景长卷与六个独立建筑图鉴。图鉴提供三处建筑热点、局部图像放大、可切换放大镜、官方资料入口与前后景点切换。
+在北京、罗马之外新增 15 座城市，每城提供俯瞰艺术封面、六景长卷和六个独立景点图鉴。合计 17 城、110 景点。新增图鉴默认启用鼠标放大镜，包含三处热点、三节详细讲解、官方入口、前后景点切换和返回位置恢复。原有两城的 20 景点也将讲解展开到页面下方。
+
+新增城市：东京、西安、杭州、南京、哈尔滨、三亚、广州、深圳、新加坡、厦门、佛罗伦萨、巴黎、伦敦、纽约、柏林。
+
+`/cities/` 是可按中文、英文、国家搜索的城市入口。名片直接进入 `/city/{slug}/`，地球点亮使用 `/?fly={slug}`。
 
 - 东京 /city/tokyo/，机票城市代码 TYO
 - 西安 /city/xian/，机票城市代码 SIA
 - ?enter=1 直接进入长卷，&landmark=景点slug 恢复指定景点
 - 首页 /?fly=tokyo 和 /?fly=xian 点亮地球，再进入城市封面
 
-内容由 site/city-atlas-data.json 管理。修改后运行 backend/.venv/bin/python scripts/build_city_atlases.py，生成静态 HTML。交互与样式分别位于 site/city-atlas.js 和 site/city-atlas.css。
+内容由 `site/city-atlas-data.json` 管理。一次修改后依次运行：
+
+```sh
+backend/.venv/bin/python scripts/build_city_atlases.py
+backend/.venv/bin/python scripts/sync_city_entries.py
+backend/.venv/bin/python scripts/build_legacy_reading.py
+backend/.venv/bin/python -m pytest backend/tests -q
+```
+
+第一步生成名片、目录和图鉴；第二步同步首页点亮数据及两个城市匹配模块，带标记区块以便幂等更新；第三步保持北京、罗马服务端 HTML 与新阅读组件一致，防止 hydration mismatch。交互与样式分别位于 `site/city-atlas.js`、`site/city-atlas.css`、`site/landmark-reading.css`。
+
+说明字段 `article` 为三段独立讲解，每段有 `heading` 与 `text`；热点 `points` 为具体图片百分比坐标。必须按实际出图校对，不能直接照搬均分占位值。馆内话题的外观热点明确标注“入内延伸”。
 
 ## 视觉
 
-使用内置 imagegen 生成 2 张城市封面、2 幅连续建筑长卷和 12 张独立建筑插画。东京采用靛蓝暮色、橙红东京塔、寺社素木与丸之内红砖；西安采用灰砖、赭石、铜绿瓦面与城门晚灯。图鉴统一暖纸底、铅笔排线与克制淡彩。
+使用 imagegen 分别生成 15 张城市封面、15 幅长卷与 90 张独立插画，统一暖纸、铅笔排线与淡彩。各城保留自己的色彩与建筑语言。后续城市使用高质量 JPEG，原生成 PNG 保留在本机生成目录，避免将全部大图重复塞入部署产物。
 
 封面为城市艺术肖像，并非实拍照片；长卷按视觉节奏排布，并非地理地图。图鉴局部图片由浏览器放大原插画对应位置，不是另行捏造的建筑细节摄影。
 
@@ -32,3 +47,7 @@
 - [秦始皇帝陵博物院](https://www.bmy.com.cn/)
 
 不写固定票价或开放时间，访问官方入口核对最新安排。丹凤门文案明确区别当代保护展示建筑与唐代遗址。
+
+其他城市的官方来源记录在各景点 `source` 字段及 [广州、深圳、新加坡研究](research-guangzhou-shenzhen-singapore.md)、[厦门等六城研究](research-next-six-cities.md)。讲解素材保留于对应研究 JSON 文件，应用以 `site/city-atlas-data.json` 为准。
+
+城市坐标是用于地球标记的近似位置；机票链接沿用 Trip 目的地代码协议，没有出票或支付操作，也不承诺实时票价或可订余量。贝塞斯达喷泉的修复提示以官方公告为依据。
