@@ -54,6 +54,6 @@ backend/.venv/bin/python -m pytest backend/tests -q
 
 ## Vercel 静态资源
 
-构建时 `python scripts/prepare_vercel.py` 将已经公开的 `site/assets/` 原样复制到生成目录 `public/assets/`，交给 Vercel CDN。`vercel.json` 从 Python 函数包排除这两个大图目录，页面、脚本、元数据与 API 仍保留；本地继续直接使用 `site/`，不需要额外服务。此处理不压缩或改动图片内容。
+构建时 `python scripts/prepare_vercel.py` 将已经公开的 `site/assets/` 原样放入生成目录 `public/assets/`，交给 Vercel CDN。在 Vercel 临时构建环境（`VERCEL=1`）中使用移动操作，避免旧版打包器忽略 `excludeFiles` 而重复携带图片。普通本地执行只复制，不移走原图。页面、脚本、元数据与 API 仍留在 `site/`，不需要额外服务，也不压缩或改动图片内容。
 
 依据 [Vercel FastAPI 的 public 目录说明](https://vercel.com/docs/frameworks/backend/fastapi#the-public-directory)。不要把整个项目目录复制到 public，以免公开环境配置或其他私有文件。
