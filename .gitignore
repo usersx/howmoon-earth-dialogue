@@ -12,3 +12,4 @@ backend/.venv/
 *.log
 outputs/
 work/
+/public/

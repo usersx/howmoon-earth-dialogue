@@ -51,3 +51,9 @@ backend/.venv/bin/python -m pytest backend/tests -q
 其他城市的官方来源记录在各景点 `source` 字段及 [广州、深圳、新加坡研究](research-guangzhou-shenzhen-singapore.md)、[厦门等六城研究](research-next-six-cities.md)。讲解素材保留于对应研究 JSON 文件，应用以 `site/city-atlas-data.json` 为准。
 
 城市坐标是用于地球标记的近似位置；机票链接沿用 Trip 目的地代码协议，没有出票或支付操作，也不承诺实时票价或可订余量。贝塞斯达喷泉的修复提示以官方公告为依据。
+
+## Vercel 静态资源
+
+构建时 `python scripts/prepare_vercel.py` 将已经公开的 `site/assets/` 原样复制到生成目录 `public/assets/`，交给 Vercel CDN。`vercel.json` 从 Python 函数包排除这两个大图目录，页面、脚本、元数据与 API 仍保留；本地继续直接使用 `site/`，不需要额外服务。此处理不压缩或改动图片内容。
+
+依据 [Vercel FastAPI 的 public 目录说明](https://vercel.com/docs/frameworks/backend/fastapi#the-public-directory)。不要把整个项目目录复制到 public，以免公开环境配置或其他私有文件。
