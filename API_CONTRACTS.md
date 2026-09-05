@@ -57,4 +57,4 @@
 { "result": {} }
 ```
 
-响应字段包括 `cacheKey`、内联 Data URL 图片、`imageVersion: "dynamic-v1"`、生成提示摘要和搜索来源引用。客户端超时为 125 秒，并把结果缓存到 `sessionStorage` 的 `earth-dialogue.city-visual.v1`。
+响应字段包括 `cacheKey`、PNG Data URL、`imageVersion: "watercolour-v2"` 和生成提示摘要。图片由千问 Qwen-Image 生成，失败返回 503，不返回模板图。后端总超时 110 秒，客户端超时 125 秒。会话缓存键为 `earth-dialogue.city-visual.watercolour-v2`，点击“再画一张”会清除缓存并重新生成。sourceReference 的 about:blank 表示生成图没有外部图片引用，前端不显示搜索来源链接。

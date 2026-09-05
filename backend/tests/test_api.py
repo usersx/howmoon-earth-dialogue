@@ -215,15 +215,58 @@ def test_geography_contract() -> None:
     assert len(payload["geography"]["landmarks"]) == 3
 
 
-def test_city_visual_contract() -> None:
+def test_city_visual_contract(monkeypatch: pytest.MonkeyPatch) -> None:
+    import io
+    from PIL import Image
+    from app.visuals import build_city_visual
+    image = io.BytesIO()
+    Image.new("RGB", (32, 32), "#faf6ec").save(image, format="JPEG")
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        if request.method == "POST":
+            data = json.loads(request.content)
+            assert data["parameters"]["prompt_extend"] is False
+            assert "seed" not in data["parameters"]
+            assert "松江市" in data["input"]["messages"][0]["content"][0]["text"]
+            return httpx.Response(200, json={"output": {"choices": [{"message": {
+                "content": [{"image": "https://test.oss-cn-beijing.aliyuncs.com/image.jpg"}]
+            }}]}})
+        assert "authorization" not in request.headers
+        return httpx.Response(200, content=image.getvalue())
+
+    async def generate(config, result):
+        return await build_city_visual(
+            replace(config, qwen_api_key="test-only"), result,
+            transport=httpx.MockTransport(handler),
+        )
+
+    monkeypatch.setattr("app.main.build_city_visual", generate)
     result = _final_event(client.post("/api/dialogue", json=_dialogue_body(5)).text)["response"]["turn"]["result"]
     response = client.post("/api/city-visual", json={"result": result})
     assert response.status_code == 200
     payload = response.json()
-    assert payload["imageVersion"] == "dynamic-v1"
+    assert payload["imageVersion"] == "watercolour-v2"
     assert payload["image"].startswith("data:image/png;base64,")
     raw = base64.b64decode(payload["image"].split(",", 1)[1])
     assert raw.startswith(b"\x89PNG\r\n\x1a\n")
+    assert len(calls) == 2
+
+
+def test_visual_missing_key_never_returns_template(monkeypatch):
+    monkeypatch.setattr("app.main.settings", replace(settings, qwen_api_key=None))
+    response = client.post("/api/city-visual", json={"result": {"destination": {"city": "北京"}}})
+    assert response.status_code == 503
+    assert "image" not in response.json()
+
+
+def test_visual_prompt_changes_with_destination_and_activity():
+    from app.visuals import visual_prompt
+    beach = visual_prompt({"destination": {"city": "巴塞罗那"}, "visualBrief": {"primaryScene": "朋友在沙滩奔跑"}})
+    forest = visual_prompt({"destination": {"city": "京都"}, "visualBrief": {"primaryScene": "独自走在竹林"}})
+    assert "沙滩奔跑" in beach and "独自走在竹林" in forest
+    assert beach != forest
 
 
 def test_mock_dialogue_has_visible_thinking_delay() -> None:

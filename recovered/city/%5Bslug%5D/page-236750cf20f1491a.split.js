@@ -77,7 +77,7 @@ a.d(t,{
 CityPanorama:()=>v,PersonalizedCityPanorama:()=>w}
 );
 var r=a(5155),i=a(2619),n=a.n(i),o=a(2115);
-let l="earth-dialogue.city-visual.v1";
+let l="earth-dialogue.city-visual.watercolour-v2";
 let tripCityCodes={
 beijing:"BJS",rome:"ROM",dali:"DLU",fukuoka:"FUK",ljubljana:"LJU",porto:"OPO",
 "北京":"BJS",Beijing:"BJS","罗马":"ROM",Rome:"ROM","大理":"DLU",Dali:"DLU",
@@ -90,7 +90,7 @@ destination:e.destination,narrative:e.display.revealNarrative,visualBrief:e.visu
 )}
 function c(e){
 var t,a;
-return!!e&&"object"==typeof e&&"string"==typeof e.cacheKey&&"string"==typeof e.image&&e.image.length>20&&"dynamic-v1"===e.imageVersion&&"string"==typeof(null==(t=e.sourceReference)?void 0:t.title)&&"string"==typeof(null==(a=e.sourceReference)?void 0:a.pageUrl)}
+return!!e&&"object"==typeof e&&"string"==typeof e.cacheKey&&"string"==typeof e.image&&e.image.length>20&&"watercolour-v2"===e.imageVersion&&"string"==typeof(null==(t=e.sourceReference)?void 0:t.title)&&"string"==typeof(null==(a=e.sourceReference)?void 0:a.pageUrl)}
 async function d(e){
 try{
 var t;
@@ -348,7 +348,7 @@ k("error"),window.setTimeout(()=>k("idle"),2600)}
 }
 ,C=null!=(e=null==i?void 0:i.result)?e:null,A=null!=(t=null==i?void 0:i.geography)?t:null;
 if((0,o.useEffect)(()=>{
-if(!m||"本地城市素材"===m.generationPromptSummary)return;
+if(!m||"watercolour-v2"===m.imageVersion||"本地城市素材"===m.generationPromptSummary)return;
 let e=!1,t="";
 return f(m.image).then(a=>{
 a&&!e&&(t=URL.createObjectURL(a),v({
@@ -361,16 +361,6 @@ e=!0,t&&URL.revokeObjectURL(t)}
 }
 ,[m]),(0,o.useEffect)(()=>{
 if(!C)return;
-let e=(0,u.y)(C.destination.city,C.destination.cityEnglishName);
-if(e){
-let t=window.requestAnimationFrame(()=>{
-g({
-cacheKey:"local:".concat(e.imageVersion),image:e.image,imageVersion:e.imageVersion,sourceReference:e.sourceReferences[0]?{
-title:"".concat(C.destination.city,"城市图片参考"),pageUrl:e.sourceReferences[0]}
-:null,generationPromptSummary:"本地城市素材"}
-),M("ready"),S(null)}
-);
-return()=>window.cancelAnimationFrame(t)}
 let t=function(e){
 try{
 let t=sessionStorage.getItem(l);
@@ -492,16 +482,18 @@ type:"button",onClick:()=>_(e=>e+1),children:"重新生成"}
 children:[(0,r.jsx)(x.O,{
 level:.32,active:!0,variant:"radial",className:"personalized-generation-signal"}
 ),(0,r.jsx)("small",{
-children:"SEARCHING + GENERATING"}
+children:"PAINTING YOUR JOURNEY"}
 ),(0,r.jsx)("p",{
-children:"正在搜索地点参考，并生成只属于这次推荐的小画……"}
+children:"正在把这座城市和你想做的事，画进一张水彩里……"}
 ),(0,r.jsx)("em",{
 children:"页面可以继续阅读，通常需要一点时间"}
 )]}
 )}
 ),m&&(0,r.jsxs)("div",{
-className:"personalized-city-art-actions",children:[m.sourceReference&&(0,r.jsx)("a",{
+className:"personalized-city-art-actions",children:[m.sourceReference&&"about:blank"!==m.sourceReference.pageUrl&&(0,r.jsx)("a",{
 href:m.sourceReference.pageUrl,target:"_blank",rel:"noreferrer",title:m.sourceReference.title,children:"websearch结果"}
+),(0,r.jsx)("button",{
+type:"button",onClick:()=>{try{sessionStorage.removeItem(l)}catch(e){}g(null),v(null),M("generating"),_(e=>e+1)},disabled:"saving"===R,children:"再画一张"}
 ),(0,r.jsx)("button",{
 type:"button",className:"personalized-city-download",onClick:()=>void I(),disabled:"saving"===R,children:"saving"===R?"正在保存":"saved"===R?"已保存到下载":"error"===R?"保存失败，重试":"保存小画"}
 )]}

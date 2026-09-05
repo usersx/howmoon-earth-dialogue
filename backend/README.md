@@ -6,7 +6,7 @@
 
 - 对话：优先使用 `DASHSCOPE_API_KEY` 调用千问；请求失败或返回无效结构时自动切换到 DeepSeek；未配置时使用确定性的本地兼容模式。
 - 地理：读取推荐结果中的坐标并返回诚实的 `estimated` 状态；目前不伪装成权威地理核验。
-- 城市视觉：使用本地 SVG 生成，无需额外 Key。
+- 城市视觉：千问 Qwen-Image 根据目的地与旅行活动生成留白水彩，复用 DASHSCOPE_API_KEY；生成失败会提示重试。下载文件统一为 PNG。
 - TTS：macOS 优先使用系统 `say`；Windows、Linux 与 Vercel 使用千问 `qwen3-tts-flash`，统一输出前端可播放的单声道 PCM。
 - 语音转写：配置千问 Key 后使用 `qwen3-asr-flash`；同一个 Key 即可，无需额外供应商。
 

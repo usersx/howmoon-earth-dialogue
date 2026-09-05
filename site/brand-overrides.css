@@ -115,3 +115,7 @@
     animation: none !important;
   }
 }
+.personalized-city-visual.is-generated-image img {
+  object-fit: contain;
+  transform: none;
+}

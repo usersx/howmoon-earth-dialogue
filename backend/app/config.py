@@ -33,6 +33,8 @@ class Settings:
     stt_api_key: Optional[str]
     stt_base_url: Optional[str]
     stt_model: Optional[str]
+    qwen_image_model: str = "qwen-image-2.0"
+    qwen_image_endpoint: str = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
 
     @property
     def dialogue_provider(self) -> str:
@@ -92,6 +94,8 @@ class Settings:
             stt_api_key=os.getenv("STT_API_KEY") or None,
             stt_base_url=(os.getenv("STT_BASE_URL") or "").rstrip("/") or None,
             stt_model=os.getenv("STT_MODEL") or None,
+            qwen_image_model=os.getenv("QWEN_IMAGE_MODEL", "qwen-image-2.0"),
+            qwen_image_endpoint=os.getenv("QWEN_IMAGE_ENDPOINT", "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"),
         )
 
 

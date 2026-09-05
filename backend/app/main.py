@@ -13,11 +13,11 @@ from .dialogue import DialogueProviderError, parse_turn, stream_turn
 from .schemas import CityVisualRequest, DialogueRequest, GeographyRequest, TTSRequest
 from .services import (
     ServiceUnavailable,
-    build_city_visual,
     build_geography,
     synthesize_speech,
     transcribe_audio,
 )
+from .visuals import build_city_visual
 
 
 app = FastAPI(title="何月兼容后端", version="0.2.0")
@@ -134,7 +134,10 @@ async def transcribe(audio: UploadFile = File(...)) -> JSONResponse:
 async def city_visual(body: CityVisualRequest) -> dict:
     if not isinstance(body.result.get("destination"), dict):
         raise HTTPException(status_code=400, detail="城市视觉请求缺少推荐结果。")
-    return build_city_visual(body.result)
+    try:
+        return await build_city_visual(settings, body.result)
+    except ServiceUnavailable as exc:
+        return JSONResponse(status_code=503, content={"error": str(exc)})
 
 
 if settings.site_dir.is_dir():
