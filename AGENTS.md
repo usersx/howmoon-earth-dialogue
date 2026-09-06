@@ -1,6 +1,6 @@
 # Howmoon · Earth Dialogue 开发交接
 
-本文件记录本仓库的架构、操作流程与维护边界。贡献者的 PR 要求见 [CONTRIBUTING.md](CONTRIBUTING.md)。规则统一维护在 `Agents.md`，不另建单数文件或入口副本。使用只自动识别全大写文件名的工具时，请在任务开头明确要求先读取本文。
+本文件记录本仓库的架构、操作流程与维护边界。贡献者的 PR 要求见 [CONTRIBUTING.md](CONTRIBUTING.md)。规则统一维护在标准文件 `AGENTS.md`，不另建单数文件或入口副本。
 
 ## 开始工作前
 

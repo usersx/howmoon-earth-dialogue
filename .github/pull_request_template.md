@@ -28,7 +28,7 @@
 
 ## 自查
 
-- [ ] 我已阅读 CONTRIBUTING.md 和 Agents.md。
+- [ ] 我已阅读 CONTRIBUTING.md 和 AGENTS.md。
 - [ ] 改动范围集中，没有夹带无关修改。
 - [ ] 资料来源和素材使用依据已交代，已按实际图片校对热点。
 - [ ] 源数据与生成产物一致；涉及 site 文件时已更新 SHA256SUMS.txt。

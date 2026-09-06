@@ -21,7 +21,7 @@
 
 当前新城市按六景规格组织。优先选能说明城市差异的建筑、街区或自然景观，避免六张只有名称不同的通用风景。新增完整城市时交付六景；还在准备的内容使用 Draft PR。
 
-新增第七个景点也可以先讨论，但需要同时调整长卷、区域坐标、相关数量文案与测试。不要只往数组末尾加一条数据。北京和罗马沿用各自十景的现有实现，修改前先读 [Agents.md](Agents.md)。
+新增第七个景点也可以先讨论，但需要同时调整长卷、区域坐标、相关数量文案与测试。不要只往数组末尾加一条数据。北京和罗马沿用各自十景的现有实现，修改前先读 [AGENTS.md](AGENTS.md)。
 
 ### 2. 数据与命名保持一致
 
@@ -116,7 +116,7 @@ git diff --check
 (cd site && find . -type f ! -name '.DS_Store' -exec shasum -a 256 {} + | sort > ../SHA256SUMS.txt)
 ```
 
-不要在本地设置 `VERCEL=1` 来运行 `scripts/prepare_vercel.py`。它会移动图片目录，专供 Vercel 的临时构建环境使用。部署规则详见 [Agents.md](Agents.md)。
+不要在本地设置 `VERCEL=1` 来运行 `scripts/prepare_vercel.py`。它会移动图片目录，专供 Vercel 的临时构建环境使用。部署规则详见 [AGENTS.md](AGENTS.md)。
 
 ## PR 需要附什么
 
