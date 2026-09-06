@@ -3,6 +3,7 @@ import asyncio
 from html.parser import HTMLParser
 import io
 import sys
+from urllib.parse import urlsplit
 
 import httpx
 from PIL import Image
@@ -34,7 +35,8 @@ def image_error(response: httpx.Response):
 
 async def check(base_url):
     base_url = base_url.rstrip("/")
-    async with httpx.AsyncClient(timeout=20) as client:
+    loopback = urlsplit(base_url).hostname in {"localhost", "127.0.0.1", "::1"}
+    async with httpx.AsyncClient(timeout=20, trust_env=not loopback) as client:
         page = await client.get(base_url + "/cities/")
         page.raise_for_status()
         parser = CoverParser()
