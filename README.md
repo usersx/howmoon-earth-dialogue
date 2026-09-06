@@ -174,7 +174,8 @@ ALLOW_MOCK_DIALOGUE=false
 
 ```text
 .
-├── site/                  浏览器直接运行的完整前端与视觉资源
+├── site/                  浏览器直接运行的页面、脚本和城市数据
+├── public/assets/         Git 管理的图片，本地和 Vercel 使用同一份源文件
 ├── backend/               FastAPI 服务、AI 接入与图片生成
 ├── backend/tests/         接口与回归测试
 ├── docs/screenshots/      README 使用的真实运行截图

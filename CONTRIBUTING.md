@@ -52,7 +52,7 @@
 新增城市通常交付下面 8 个文件，路径与 JSON 中的后缀保持一致。
 
 ```text
-site/assets/<city-slug>/
+public/assets/<city-slug>/
   hero.jpg
   panorama.jpg
   <landmark-1>.jpg
@@ -113,10 +113,10 @@ git diff --check
 如果 `site/` 有变化，更新校验清单。下面命令适用于 macOS，Linux 可将 `shasum -a 256` 换成 `sha256sum`。Windows 可使用 WSL/Git Bash 中相应工具。
 
 ```sh
-(cd site && find . -type f ! -name '.DS_Store' -exec shasum -a 256 {} + | sort > ../SHA256SUMS.txt)
+find site public -type f ! -name '.DS_Store' -exec shasum -a 256 {} + | sort > SHA256SUMS.txt
 ```
 
-不要在本地设置 `VERCEL=1` 来运行 `scripts/prepare_vercel.py`。它会移动图片目录，专供 Vercel 的临时构建环境使用。部署规则详见 [AGENTS.md](AGENTS.md)。
+图片必须直接提交到 `public/assets/`，不能只在构建时生成这个目录。`scripts/prepare_vercel.py` 现在仅校验资源，不复制或移动文件。本地 `/assets/` 与线上静态资源使用同一份图片。部署后可运行 `backend/.venv/bin/python scripts/check_static_assets.py https://你的部署域名` 验证目录中的每张封面。详见 [AGENTS.md](AGENTS.md)。
 
 ## PR 需要附什么
 

@@ -45,7 +45,7 @@ def city_page(city):
         "tokyo": [(0,25,40),(25,35,19),(35,52,52),(52,61,26),(61,82,44),(82,100,55)],
         "xian": [(0,18,36),(18,39,26),(39,55,20),(55,62,34),(62,81,40),(81,100,48)],
     }[slug]
-    with Image.open(SITE / image_path(slug, "panorama").lstrip("/")) as panorama:
+    with Image.open(ROOT / "public" / image_path(slug, "panorama").lstrip("/")) as panorama:
         pw, ph = panorama.size
     links, items = [], []
     for index, item in enumerate(city["landmarks"]):
@@ -95,7 +95,7 @@ def city_page(city):
 def detail_page(city, landmark):
     slug = city["slug"]
     image = image_path(slug, landmark["slug"])
-    with Image.open(SITE / image.lstrip("/")) as art:
+    with Image.open(ROOT / "public" / image.lstrip("/")) as art:
         width, height = art.size
     points = "".join(
         f'<button class="hotspot" data-point="{i}" style="left:{p["x"]}%;top:{p["y"]}%" aria-label="了解{p["title"]}" aria-controls="detail-card" aria-expanded="false"><span></span></button>'

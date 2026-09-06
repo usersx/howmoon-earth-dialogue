@@ -1,29 +1,22 @@
-"""Copy already-public artwork to Vercel CDN output, keeping local paths intact."""
+"""Validate versioned public artwork before deployment. Never move source files."""
+import json
 from pathlib import Path
-from shutil import copytree, move
-import os
 
 
-def prepare_static_assets(site_dir: Path, public_dir: Path, *, move_sources: bool = False) -> int:
-    source = site_dir / "assets"
-    if not source.is_dir():
-        raise FileNotFoundError(f"Artwork directory missing: {source}")
-    count = sum(path.is_file() for path in source.rglob("*"))
-    target = public_dir / "assets"
-    if move_sources:
-        # Vercel uses an isolated checkout. Moving (not deleting) the tree keeps
-        # original bytes available to the CDN without bundling them twice.
-        if target.exists():
-            raise FileExistsError(f"Refusing to overwrite existing CDN assets: {target}")
-        public_dir.mkdir(parents=True, exist_ok=True)
-        move(str(source), str(target))
-    else:
-        copytree(source, target, dirs_exist_ok=True)
-    return count
+def validate_static_assets(root: Path) -> int:
+    public = root / "public"
+    catalogue = json.loads((root / "site/city-atlas-data.json").read_text())
+    required = {"assets/beijing-city-hero-v1.jpg", "assets/rome-city-hero-v1.jpg"}
+    for slug, city in catalogue.items():
+        extension = city.get("imageFormat", "png")
+        names = ["hero", "panorama", *[point["slug"] for point in city["landmarks"]]]
+        required.update(f"assets/{slug}/{name}.{extension}" for name in names)
+    missing = sorted(path for path in required if not (public / path).is_file())
+    if missing:
+        raise FileNotFoundError(f"Versioned public artwork missing: {missing[:5]}")
+    return sum(path.is_file() for path in (public / "assets").rglob("*"))
 
 
 if __name__ == "__main__":
-    root = Path(__file__).resolve().parents[1]
-    cloud = os.environ.get("VERCEL") == "1"
-    count = prepare_static_assets(root / "site", root / "public", move_sources=cloud)
-    print(f"Prepared {count} artwork files for Vercel CDN; cloud move={cloud}.")
+    count = validate_static_assets(Path(__file__).resolve().parents[1])
+    print(f"Validated {count} versioned public artwork files; no files moved.")

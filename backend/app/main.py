@@ -140,5 +140,9 @@ async def city_visual(body: CityVisualRequest) -> dict:
         return JSONResponse(status_code=503, content={"error": str(exc)})
 
 
+artwork_dir = settings.package_dir / "public" / "assets"
+if artwork_dir.is_dir():
+    app.mount("/assets", StaticFiles(directory=artwork_dir), name="artwork")
+
 if settings.site_dir.is_dir():
     app.mount("/", StaticFiles(directory=settings.site_dir, html=True), name="frontend")

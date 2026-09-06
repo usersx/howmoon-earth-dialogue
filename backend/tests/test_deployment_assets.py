@@ -1,32 +1,30 @@
+import json
 from pathlib import Path
 
-from scripts.prepare_vercel import prepare_static_assets
+import pytest
+
+from scripts.prepare_vercel import validate_static_assets
 
 
-def test_artwork_copy_keeps_binary_content_and_does_not_publish_private_files(tmp_path: Path) -> None:
-    site = tmp_path / "site"
-    (site / "assets" / "tokyo").mkdir(parents=True)
-    artwork = b"\x89PNG\r\n\x1a\nexample-artwork"
-    (site / "assets" / "tokyo" / "hero.png").write_bytes(artwork)
-    (site / "city-atlas-data.json").write_text("{}")
-    (tmp_path / ".env").write_text("PRIVATE=test")
-    public = tmp_path / "public"
-    assert prepare_static_assets(site, public) == 1
-    assert (public / "assets" / "tokyo" / "hero.png").read_bytes() == artwork
-    assert (site / "assets" / "tokyo" / "hero.png").read_bytes() == artwork
-    assert not (public / ".env").exists()
-    assert not (public / "city-atlas-data.json").exists()
-    assert prepare_static_assets(site, public) == 1
-
-
-def test_cloud_build_moves_only_artwork_out_of_function_source(tmp_path: Path) -> None:
-    site = tmp_path / "site"
-    (site / "assets").mkdir(parents=True)
+def test_build_validation_preserves_images_and_private_files(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "site").mkdir()
+    (tmp_path / "site/city-atlas-data.json").write_text(json.dumps({}))
+    assets = tmp_path / "public/assets"
+    assets.mkdir(parents=True)
     image = b"sample-image-bytes"
-    (site / "assets" / "hero.jpg").write_bytes(image)
-    (site / "city-atlas-data.json").write_text("{}")
-    public = tmp_path / "public"
-    assert prepare_static_assets(site, public, move_sources=True) == 1
-    assert not (site / "assets").exists()
-    assert (public / "assets" / "hero.jpg").read_bytes() == image
-    assert (site / "city-atlas-data.json").exists()
+    for name in ("beijing-city-hero-v1.jpg", "rome-city-hero-v1.jpg"):
+        (assets / name).write_bytes(image)
+    (tmp_path / ".env").write_text("PRIVATE=test")
+    monkeypatch.setenv("VERCEL", "1")
+    assert validate_static_assets(tmp_path) == 2
+    assert validate_static_assets(tmp_path) == 2
+    assert (assets / "beijing-city-hero-v1.jpg").read_bytes() == image
+    assert (tmp_path / "site/city-atlas-data.json").exists()
+    assert not (tmp_path / "public/.env").exists()
+
+
+def test_build_validation_rejects_missing_artwork(tmp_path: Path) -> None:
+    (tmp_path / "site").mkdir()
+    (tmp_path / "site/city-atlas-data.json").write_text(json.dumps({}))
+    with pytest.raises(FileNotFoundError, match="Versioned public artwork missing"):
+        validate_static_assets(tmp_path)
